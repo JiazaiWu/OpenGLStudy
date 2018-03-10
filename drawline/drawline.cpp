@@ -1,13 +1,14 @@
 #include<GL/glut.h>
 #include<cmath>
+#include<functional>
 #include<iostream>
 
 using namespace std;
 
-int x_1 = 0;
-int y_1 = 0;
-int x_2 = 200; //y1 is declared??
-int y_2 = 300;
+int x_1 = 50;
+int y_1 = 400;
+int x_2 = 300; //y1 is declared??
+int y_2 = 50;
 
 void Init() {
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -32,16 +33,13 @@ void DDA()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(1.0f, 1.0f, 1.0f);
-
 	glPointSize(1);
 
 	/*to draw*/
 	float stepLen = fabs(x_2-x_1) > fabs(y_2-y_1) ? fabs(x_2-x_1) : fabs(y_2-y_1);
-	cout << "steplen " << stepLen << endl;
 
 	float dx = (float) (x_2 - x_1) / stepLen;
 	float dy = (float) (y_2 - y_1) / stepLen;
-	cout << "dx " << dx << " dy " << dy << endl;
 
 	/* count steplen, transfer to Int when draw*/
 	float x = x_1;
@@ -62,11 +60,68 @@ void DDA()
 	glFlush();
 }
 
+void compare()
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glPointSize(1);
+
+	int nx, ny, offx, offy;
+	int F = 0;
+	int x = 0, y = 0;
+
+	if (y_2 > y_1) {
+		nx = x_2 - x_1;
+		ny = y_2 - y_1;
+		offx = x_1;
+		offy = y_1;
+	} else {
+		nx = x_1 - x_2;
+		ny = y_1 - y_2;
+		offx = x_2;
+		offy = y_2;
+	}
+
+	cout << nx << " " << ny << endl;
+	int stepLen = abs(nx) + abs(ny);
+
+	glBegin(GL_POINTS);
+	for (int i = 0; i < stepLen; i++) {
+		glVertex2i(x+offx, y+offy);
+		if (nx > 0) {
+			/*line in 1st region*/
+			if (F >= 0) {
+				x++; F -= ny;
+			} else {
+				y++; F += nx;
+			}
+		} else {
+			/*line in 2nd region*/
+			if (F >= 0) {
+				y++; F += nx;
+			} else {
+				/*notice in 2nd region
+				  x will decrease when step move on*/
+				x--; F += ny;
+			}
+		}
+	}
+
+	/*end draw*/
+	glEnd();
+
+	/*make show*/
+	glFlush();
+}
+
 
 int main(int argc,  char *argv[])
 {
 	void (*myDisplay)();
-	myDisplay = DDA;
+
+	//myDisplay = DDA;
+	myDisplay = compare;
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
 	glutInitWindowPosition(100, 100);
